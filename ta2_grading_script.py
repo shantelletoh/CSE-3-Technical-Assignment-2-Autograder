@@ -65,7 +65,24 @@ def check_tooltip():
 
 # 4. Colored background (other than white) (100 points)
 def check_colored_background():
-    pass
+    # colored background set in the CSS style tag
+    style_tags = soup.find_all("style")
+    for style_tag in style_tags:
+        if "background-color" in style_tag.text and not "background-color: white" in style_tag.text:
+            print("The HTML file has a colored background.")
+            return
+        # elif "background-color" not in style_tag.text:
+            # print("The file does NOT have a colored background.")
+
+    # colored background also be set in the body tag
+    body_tags = soup.find_all("body")
+    if body_tags:
+        for body_tag in body_tags:
+            bgcolor = body_tag.get("bgcolor")
+            if bgcolor:
+                print("The HTML file has a colored background.")
+                return
+        print("The file does not have a colored background.")
 
 
 # 5. "Mailto" link to your email address (50 points)
