@@ -1,5 +1,6 @@
 import os
 from bs4 import BeautifulSoup
+import re
 
 # check for correct html file type
 def check_type_html(file_name):
@@ -33,7 +34,7 @@ def check_headings():
         print("The file contains headings of at least two different sizes:", ", ".join(heading_sizes))
         print("Heading sizes found:", ", ".join(heading_sizes))
     else:
-        print("The HTML file does not contain at least two headings of different sizes.")
+        print("The file does not contain at least two headings of different sizes.")
 
 # 3. Add a tooltip (or "hover box") to your first use of the h1 tag. (50 points)
 def check_tooltip():
@@ -55,12 +56,12 @@ def check_tooltip():
             # check if CSS contains styles for h1:hover or .tooltip class
             for css_style in css_styles:
                 if "h1:hover" in css_style or ".tooltip" in css_style:
-                    # print("The HTML file contains CSS for h1:hover or .tooltip class.")
+                    # print("The file contains CSS for h1:hover or .tooltip class.")
                     return
-            print("The first <h1> tag in the HTML file does not have a tooltip or hover box.")
+            print("The first <h1> tag in the file does not have a tooltip or hover box.")
             return
     else:
-        print("The HTML file does not contain any <h1> tags.")
+        print("The file does not contain any <h1> tags.")
 
 
 # 4. Colored background (other than white) (100 points)
@@ -69,7 +70,7 @@ def check_colored_background():
     style_tags = soup.find_all("style")
     for style_tag in style_tags:
         if "background-color" in style_tag.text and not "background-color: white" in style_tag.text:
-            print("The HTML file has a colored background.")
+            print("The file has a colored background.")
             return
         # elif "background-color" not in style_tag.text:
             # print("The file does NOT have a colored background.")
@@ -80,29 +81,87 @@ def check_colored_background():
         for body_tag in body_tags:
             bgcolor = body_tag.get("bgcolor")
             if bgcolor:
-                print("The HTML file has a colored background.")
+                print("The file has a colored background.")
                 return
         print("The file does not have a colored background.")
 
 
 # 5. "Mailto" link to your email address (50 points)
 def check_mailto():
-    pass
+    a_tags = soup.find_all("a", href=True)
+    for a_tag in a_tags:
+        href = a_tag["href"]
+        if href.lower().startswith("mailto:"):
+            email_match = re.match(r"^mailto:([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})$", href, re.IGNORECASE)
+            return
+            # if email_match:
+                # email_address = email_match.group(1)
+                # print(f"Found email address in "{file_name}": {email_address}")
+            # else:
+                # print("No valid email address found.")
+        # else:
+    print(f"The file does NOT have a \"mailto\" link to your email address.")
 
 
 # 6. Hyperlink to another website (must use a URL, not a file path) (50 points)
 def check_hyperlink():
-    pass
+    anchor_tags = soup.find_all("a", href=True)
+
+    for anchor_tag in anchor_tags:
+        url = anchor_tag["href"]
+        # Check if the URL is a valid HTTP or HTTPS link
+        if re.match(r"^https?://", url):
+            # print("The file contains a hyperlink to another website.")
+            # print("URL:", url)
+            return
+    print("The file does not contain a hyperlink to another website.")
 
 
 # 7. Bold text and italic text (50 points each)
 def check_bold_and_italic():
-    pass
+    bold_tags = soup.find_all(['b', 'strong']) # Find all bold and strong tags
+    italic_tags = soup.find_all(['i', 'em']) # Find all italic and emphasis tags
+    # if bold_tags:
+        # print("The file contains bold text.")
+    if not bold_tags:
+        print("The file does not contain bold text.")
+
+    # if italic_tags:
+        # print("The file contains italic text.")
+    if not italic_tags:
+        print("The file does not contain italic text.")
 
 
 # 8. Centered text or photo (50 points)
 def check_centered_text_or_photo():
-    pass
+    style_tag = soup.find("style")
+    if style_tag:
+        style_text = style_tag.get_text()
+        if "text-align: center" in style_text:
+            return
+
+    centered_elements_html = soup.find_all('center')
+    centered_text_elements_css = soup.find_all(style=lambda value: value and 'text-align: center' in value) # Find all elements with text-align: center; style
+    centered_img_elements_css = soup.find_all('img', style=lambda value: value and 'margin: auto' in value) # Find all img tags with margin: auto; style
+    # print("type of centered_elements:", type(centered_elements_html))
+
+
+    # commented code not working
+    # style_pattern = r'<style[^>]*>(.*?)<\/style>'
+    # style_matches = re.findall(style_pattern, file_path, re.DOTALL)
+    
+    # # Check each match for text-align: center;
+    # for style_match in style_matches:
+    #     if 'text-align: center;' in style_match:
+    #         print("hi")
+    #         return
+        
+    
+    
+    if not centered_elements_html and not centered_text_elements_css and not centered_img_elements_css:
+        # print(f"The HTML file '{file_name}' contains centered content.")
+    # else:
+        print(f"The file does not contain centered content.")
 
 
 # 9. Horizontal line (aka "horizontal rule") (50 points)
