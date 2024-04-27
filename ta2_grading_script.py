@@ -140,38 +140,48 @@ def check_centered_text_or_photo():
         if "text-align: center" in style_text:
             return
 
-    centered_elements_html = soup.find_all('center')
-    centered_text_elements_css = soup.find_all(style=lambda value: value and 'text-align: center' in value) # Find all elements with text-align: center; style
-    centered_img_elements_css = soup.find_all('img', style=lambda value: value and 'margin: auto' in value) # Find all img tags with margin: auto; style
+    centered_elements_html = soup.find_all("center")
+    centered_text_elements_css = soup.find_all(style=lambda value: value and "text-align: center" in value) # Find all elements with text-align: center; style
+    centered_img_elements_css = soup.find_all("img", style=lambda value: value and "margin: auto" in value) # Find all img tags with margin: auto; style
     # print("type of centered_elements:", type(centered_elements_html))
 
 
     # commented code not working
-    # style_pattern = r'<style[^>]*>(.*?)<\/style>'
+    # style_pattern = r"<style[^>]*>(.*?)<\/style>"
     # style_matches = re.findall(style_pattern, file_path, re.DOTALL)
     
     # # Check each match for text-align: center;
     # for style_match in style_matches:
-    #     if 'text-align: center;' in style_match:
+    #     if "text-align: center;" in style_match:
     #         print("hi")
     #         return
         
     
     
     if not centered_elements_html and not centered_text_elements_css and not centered_img_elements_css:
-        # print(f"The HTML file '{file_name}' contains centered content.")
+        # print(f"The file "{file_name}" contains centered content.")
     # else:
         print(f"The file does not contain centered content.")
 
 
 # 9. Horizontal line (aka "horizontal rule") (50 points)
 def check_horizontal_line():
-    pass
+    horizontal_lines = soup.find_all("hr")
+    if not horizontal_lines:
+        # print("The file contains horizontal lines (horizontal rules).")
+    # else:
+        print("The file does not contain horizontal lines (horizontal rules).")
 
 
 # 10. Ordered list (numbered list) and unordered list (bulleted list) (50 points each)
 def check_ordered_and_unordered_list():
-    pass
+    ordered_lists = soup.find_all("ol")
+    unordered_lists = soup.find_all("ul")
+    if not ordered_lists:
+        print("The file does not contain ordered lists (numbered lists).")
+
+    if not unordered_lists:
+        print("The file does not contain unordered lists (bulleted lists).")
 
 
 # 11. A working picture, hosted online. You can link to an existing photo or upload your own image to photo-sharing sites like Google Photos or imgur.com. Make sure the photo is shared properly, and test your page on someone else's device to be certain. (100 points)
