@@ -1,6 +1,8 @@
 import os
 from bs4 import BeautifulSoup
 import re
+import requests
+import base64
 
 # check for correct html file type
 def check_type_html(file_name):
@@ -186,12 +188,72 @@ def check_ordered_and_unordered_list():
 
 # 11. A working picture, hosted online. You can link to an existing photo or upload your own image to photo-sharing sites like Google Photos or imgur.com. Make sure the photo is shared properly, and test your page on someone else's device to be certain. (100 points)
 def check_picture():
-    pass
+    picture_tags = soup.find_all("img")
+
+    for picture_tag in picture_tags:
+        src = picture_tag.get("src")
+        print("src:", src)
+
+        if src is None:
+            print("The file does not contain a working picture hosted online.")
+            return
+        
+        else:
+            # print("here")
+            try:
+                response = requests.head(src)
+                print("src:", src)
+                print("response:", response)
+                print("response.status_code:", response.status_code)
+                if response.status_code == 200:
+                    print("The file contains a working picture hosted online:")
+                    print("Image URL:", src)
+                    return
+            except Exception as e:
+                print("The file does not contain a working picture hosted online.")
+                return
+    # except:
+    print("The file does not contain a working picture hosted online.")
+            
+    # for picture_tag in picture_tags:
+    #     src = picture_tag.get("src")
+    #     print("src:", src)
+    #     if src is not None and src.startswith(('http://', 'https://')):
+    #         # print("The file contains a working picture hosted online.")
+    #         # print("Image URL:", src)
+    #         return
+    # print("The file does not contain a working picture hosted online.")
 
 
 # 12. Set the width and height of your photo. Recommend 450x600 for portrait layout, or 600x450 for landscape. If your source photo isn't 4:3 aspect ratio, this may look odd. (100 points)
 def check_picture_width_height():
-    pass
+    picture_tags = soup.find_all("img")
+
+    for picture_tag in picture_tags:
+        width = picture_tag.get("width")
+        height = picture_tag.get("height")
+        if width and height:
+            return
+        inline_style = picture_tag.get("style")
+        if inline_style and ("width" in inline_style) and ("height" in inline_style):
+            return
+    
+    # find all <style> tags to extract CSS
+    style_tags = soup.find_all("style")
+    css_styles = []
+    for style_tag in style_tags:
+        css_styles.append(style_tag.get_text())
+
+    # check if CSS contains width and height styles for img and image classes
+    for css_style in css_styles:
+        if "img" in css_style and ("width" in css_style and "height" in css_style):
+            # print("The file contains contains width and height styles for img class")
+            return
+        if "image" in css_style and ("width" in css_style and "height" in css_style):
+            # print("The file contains contains width and height styles for image class")
+            return
+    
+    print("The file does not contain an image with both width and height attributes set.")
 
 
 # 13. Add a comment at the very bottom of your source code, listing the tools you used to create this: operating system, text editor, and the web browser you used to test it. (100 points)
