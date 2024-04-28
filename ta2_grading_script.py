@@ -11,13 +11,13 @@ def check_type_html(file_name):
     if not file_name.lower().endswith(".html"):
         print("Error: The file is not an HTML file.")
         print("Total Score: 0")
-        print("Please email your assignment with the correct .html file ending to your TA so it can be graded.")
+        print("If you did not submit an HTML file, please email your assignment with the correct .html file ending to your TA so it can be graded.")
         total_score -= 1000
         return
 
-    with open(file_name, "r", encoding="utf-8") as f:
-        html_content = f.read()
-        print(f"File: {file_name}\n")
+    with open(file_name, "r", encoding="utf-8") as fh:
+        html_content = fh.read()
+        # print(f"File: {file_name}\n")
         soup = BeautifulSoup(html_content, "html.parser")
         return soup
 
@@ -38,6 +38,7 @@ def check_headings():
     heading_sizes = set()
     for heading in headings:
         heading_sizes.add(heading.name)
+    print(heading_sizes)
 
     if len(heading_sizes) == 1:
         print("-50: The file contains only headings of one size (instead of two different sizes): ", ", ".join(heading_sizes))
@@ -74,7 +75,7 @@ def check_tooltip():
             total_score -= 50
             return
     else:
-        print("The file does not contain any <h1> tags.")
+        print("-50: The file does not contain any <h1> tags.")
         total_score -= 50
 
 
@@ -137,11 +138,30 @@ def check_bold_and_italic():
     global total_score
     bold_tags = soup.find_all(["b", "strong"]) # Find all bold and strong tags
     italic_tags = soup.find_all(["i", "em"]) # Find all italic and emphasis tags
-    if not bold_tags:
+    
+    bold = False
+    italic = False
+    
+    # check inline styles
+    elements_with_inline_bold_styles = soup.find_all(style=lambda value: value and ("font-weight:bold" in value or "font-weight: bold" in value))
+    elements_with_inline_italic_styles = soup.find_all(style=lambda value: value and ("font-style:italic" in value or "font-style: italic" in value))
+    
+    # check style tag styles
+    style_tags = soup.find_all("style")
+    for tag in style_tags:
+        if "font-weight:bold" or "font-weight: bold" in tag.text:
+            bold = True
+            break
+    for tag in style_tags:
+        if "font-style:italic" or "font-style: italic" in tag.text:
+            italic = True
+            break
+            
+    if not bold_tags and not len(elements_with_inline_bold_styles) < 1 and not bold:
         print("-50: The file does not contain bold text.")
         total_score -= 50
 
-    if not italic_tags:
+    if not italic_tags and not len(elements_with_inline_italic_styles) < 1 and not italic:
         print("-50: The file does not contain italic text.")
         total_score -= 50
 
@@ -202,26 +222,30 @@ def check_picture():
     global total_score
     picture_tags = soup.find_all("img")
 
+    counter = 0
+    # msg = False
     for picture_tag in picture_tags:
+        counter += 1
         src = picture_tag.get("src")
         # print("src:", src)
 
-        if src is None:
-            print("-100: The file does not contain a working picture hosted online.")
-            total_score -= 100
-            return
-        
-        # allow encoded images
-        if src.startswith("data:image/"):
-            encoded_data = re.search(r"base64,(.*)", src).group(1)
-            base64.b64decode(encoded_data)
-            return
+        try:
+            if src is None:
+                print("-100: The file does not contain a working picture hosted online.")
+                total_score -= 100
+                return
             
-        elif src.startswith("https://i.imgur.com/"): # special case so it won't give too many requests error
-            return
-        
-        else:
-            try:
+            # allow encoded images
+            if src.startswith("data:image/"):
+                encoded_data = re.search(r"base64,(.*)", src).group(1)
+                base64.b64decode(encoded_data)
+                return
+                
+            elif src.startswith("https://i.imgur.com/"): # special case so it won't give too many requests error
+                return
+            
+            else:
+                # try:
                 response = requests.head(src)
                 # print("src:", src)
                 # print("response:", response)
@@ -230,7 +254,14 @@ def check_picture():
                     # print("The file contains a working picture hosted online:")
                     # print("Image URL:", src)
                     return
-            except Exception as e:
+                # elif response.status_code >= 300: # picture may or may not be visible
+                #     msg = True
+                elif response.status_code >= 300:
+                    if counter == len(picture_tags): # last picture
+                        print("To grader: check manually if there is an image. If image not visible, please manually deduct 100 points.")
+                        return
+        except Exception as e:
+            if counter == len(picture_tags): # last picture
                 print("-100: The file does not contain a working picture hosted online.")
                 total_score -= 100
                 return
@@ -295,7 +326,7 @@ def check_extra_credit_video():
     for iframe_tag in iframe_tags:
         src = iframe_tag.get("src")
         if src and ("youtube.com/embed" in src or "player.vimeo.com/video" in src):
-            print("+100 extra credit: The file contains a video from a video hosting service.")
+            print("+100 extra credit for embedding a video.")
             # print("Video URL:", src)
             total_score += 100
             return
@@ -313,6 +344,8 @@ if __name__ == "__main__":
             total_score = 1000
             
             file_path = os.path.join(folder_path, file_name)
+            
+            print("file_path:", file_path)
             parts = file_name.split("_")
             prefix = parts[0] # prefix (before 1st underscore) is lastnamefirstname of student
             
