@@ -26,8 +26,6 @@ def check_type_html(file_name):
 def check_title():
     global total_score
     title_tag = soup.find("title")
-    # if title_tag:
-        # print("The file has a title:", title_tag.text)
     if title_tag is None:
         print("-50: The file does not have a title.")
         total_score -= 50
@@ -41,9 +39,6 @@ def check_headings():
     for heading in headings:
         heading_sizes.add(heading.name)
 
-    # if len(heading_sizes) >= 2:
-    #     print("The file contains headings of at least two different sizes:", ", ".join(heading_sizes))
-    #     print("Heading sizes found:", ", ".join(heading_sizes))
     if len(heading_sizes) == 1:
         print("-50: The HTML file contains only headings of one size (instead of two different sizes): ", ", ".join(heading_sizes))
         total_score -= 50
@@ -74,7 +69,6 @@ def check_tooltip():
             # check if CSS contains styles for h1:hover or .tooltip class
             for css_style in css_styles:
                 if "h1:hover" in css_style or ".tooltip" in css_style:
-                    # print("The file contains CSS for h1:hover or .tooltip class.")
                     return
             print("-50: The first <h1> tag in the file does not have a tooltip or hover box.")
             total_score -= 50
@@ -91,10 +85,7 @@ def check_colored_background():
     style_tags = soup.find_all("style")
     for style_tag in style_tags:
         if "background-color" in style_tag.text and not "background-color: white" in style_tag.text:
-            print("The file has a colored background.")
             return
-        # elif "background-color" not in style_tag.text:
-            # print("The file does NOT have a colored background.")
 
     # colored background also be set in the body tag
     body_tags = soup.find_all("body")
@@ -102,12 +93,12 @@ def check_colored_background():
         for body_tag in body_tags:
             bgcolor = body_tag.get("bgcolor")
             if bgcolor:
-                print("The file has a colored background.")
                 return
             elif body_tag.has_attr("style") and "background-color" in body_tag["style"]:
                 return
         print("-100: The file does not have a colored background.")
         total_score -= 100
+
 
 # 5. "Mailto" link to your email address (50 points)
 def check_mailto():
@@ -123,7 +114,6 @@ def check_mailto():
                 # print(f"Found email address in "{file_name}": {email_address}")
             # else:
                 # print("No valid email address found.")
-        # else:
     print(f"-50: The file does NOT have a \"mailto\" link to your email address.")
     total_score -= 50
 
@@ -137,8 +127,6 @@ def check_hyperlink():
         url = anchor_tag["href"]
         # Check if the URL is a valid HTTP or HTTPS link
         if re.match(r"^https?://", url):
-            # print("The file contains a hyperlink to another website.")
-            # print("URL:", url)
             return
     print("-50: The file does not contain a hyperlink to another website.")
     total_score -= 50
@@ -147,16 +135,12 @@ def check_hyperlink():
 # 7. Bold text and italic text (50 points each)
 def check_bold_and_italic():
     global total_score
-    bold_tags = soup.find_all(['b', 'strong']) # Find all bold and strong tags
-    italic_tags = soup.find_all(['i', 'em']) # Find all italic and emphasis tags
-    # if bold_tags:
-        # print("The file contains bold text.")
+    bold_tags = soup.find_all(["b", "strong"]) # Find all bold and strong tags
+    italic_tags = soup.find_all(["i", "em"]) # Find all italic and emphasis tags
     if not bold_tags:
         print("-50: The file does not contain bold text.")
         total_score -= 50
 
-    # if italic_tags:
-        # print("The file contains italic text.")
     if not italic_tags:
         print("-50: The file does not contain italic text.")
         total_score -= 50
@@ -174,24 +158,9 @@ def check_centered_text_or_photo():
     centered_elements_html = soup.find_all("center")
     centered_text_elements_css = soup.find_all(style=lambda value: value and "text-align: center" in value) # Find all elements with text-align: center; style
     centered_img_elements_css = soup.find_all("img", style=lambda value: value and "margin: auto" in value) # Find all img tags with margin: auto; style
-    # print("type of centered_elements:", type(centered_elements_html))
-
-
-    # commented code not working
-    # style_pattern = r"<style[^>]*>(.*?)<\/style>"
-    # style_matches = re.findall(style_pattern, file_path, re.DOTALL)
-    
-    # # Check each match for text-align: center;
-    # for style_match in style_matches:
-    #     if "text-align: center;" in style_match:
-    #         print("hi")
-    #         return
-        
     
     
     if not centered_elements_html and not centered_text_elements_css and not centered_img_elements_css:
-        # print(f"The file "{file_name}" contains centered content.")
-    # else:
         print(f"-50: The file does not contain centered content.")
         total_score -= 50
 
@@ -201,8 +170,6 @@ def check_horizontal_line():
     global total_score
     horizontal_lines = soup.find_all("hr")
     if not horizontal_lines:
-        # print("The file contains horizontal lines (horizontal rules).")
-    # else:
         print("-50: The file does not contain horizontal lines (horizontal rules).")
         total_score -= 50
 
@@ -247,20 +214,13 @@ def check_picture():
         # allow encoded images
         if src.startswith("data:image/"):
             encoded_data = re.search(r"base64,(.*)", src).group(1)
-            # print("The file contains a working picture hosted online:")
-            # print("Image URL:", src)
-            # try:
             base64.b64decode(encoded_data)
             return
-            # except:
-            #     print("-100: The file does not contain a working picture hosted online.")
-            #     total_score -= 100
             
         elif src.startswith("https://i.imgur.com/"): # special case so it won't give too many requests error
             return
         
         else:
-            # print("here")
             try:
                 response = requests.head(src)
                 print("src:", src)
@@ -274,18 +234,8 @@ def check_picture():
                 print("-100: The file does not contain a working picture hosted online.")
                 total_score -= 100
                 return
-    # except:
     print("-100: The file does not contain a working picture hosted online.")
     total_score -= 100
-            
-    # for picture_tag in picture_tags:
-    #     src = picture_tag.get("src")
-    #     print("src:", src)
-    #     if src is not None and src.startswith(('http://', 'https://')):
-    #         # print("The file contains a working picture hosted online.")
-    #         # print("Image URL:", src)
-    #         return
-    # print("The file does not contain a working picture hosted online.")
 
 
 # 12. Set the width and height of your photo. Recommend 450x600 for portrait layout, or 600x450 for landscape. If your source photo isn't 4:3 aspect ratio, this may look odd. (100 points)
@@ -311,10 +261,8 @@ def check_picture_width_height():
     # check if CSS contains width and height styles for img and image classes
     for css_style in css_styles:
         if "img" in css_style and ("width" in css_style and "height" in css_style):
-            # print("The file contains contains width and height styles for img class")
             return
         if "image" in css_style and ("width" in css_style and "height" in css_style):
-            # print("The file contains contains width and height styles for image class")
             return
     
     print("-100: The file does not contain an image with both width and height attributes set.")
@@ -328,7 +276,6 @@ def check_comment():
     for comment in comments:
         words = comment.strip().split()
         if len(words) >= 3:
-            # print("The file contains at least one comment that is at least 3 words long.")
             return
 
     comment_pattern = r"<!--\s*(?:\w+\W+){2,}"
@@ -336,7 +283,7 @@ def check_comment():
     if len(matches) > 0:
         return
 
-    print("-100: The file does NOT contain at least one comment that is at least 3 words long.")
+    print("-100: The file does NOT contain a comment for the tools used.")
     total_score -= 100
 
 
@@ -355,7 +302,6 @@ def check_extra_credit_video():
 
 
 if __name__ == "__main__":
-    # file_path = input("Enter the path to the HTML file: ")
     
     output_file = "student_scores.csv"
     with open(output_file, "w", newline="") as csvfile:
@@ -369,7 +315,6 @@ if __name__ == "__main__":
             file_path = os.path.join(folder_path, file_name)
             parts = file_name.split("_")
             prefix = parts[0] # prefix (before 1st underscore) is lastnamefirstname of student
-            # print("parts:", parts)
 
             soup = check_type_html(file_path)
             if soup:
