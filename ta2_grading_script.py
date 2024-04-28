@@ -202,13 +202,22 @@ def check_horizontal_line():
 # 10. Ordered list (numbered list) and unordered list (bulleted list) (50 points each)
 def check_ordered_and_unordered_list():
     global total_score
+    
+    # li tags without parent count as unordered lists, so don't deduct points if there are such li tags
+    check_unordered = True
+    li_tags = soup.find_all("li")
+    if len(li_tags) > 0:
+        for li in li_tags:
+            if li.find_parent(["ul", "ol"]) is None: # li tag has no ul or ol parent tag
+                check_unordered = False
+    
     ordered_lists = soup.find_all("ol")
     unordered_lists = soup.find_all("ul")
     if not ordered_lists:
         print("-50: The file does not contain ordered lists (numbered lists).")
         total_score -= 50
 
-    if not unordered_lists:
+    if check_unordered and not unordered_lists:
         print("-50: The file does not contain unordered lists (bulleted lists).")
         total_score -= 50
 
