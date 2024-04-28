@@ -41,9 +41,13 @@ def check_headings():
     for heading in headings:
         heading_sizes.add(heading.name)
 
-    if len(heading_sizes) >= 2:
-        print("The file contains headings of at least two different sizes:", ", ".join(heading_sizes))
-        print("Heading sizes found:", ", ".join(heading_sizes))
+    # if len(heading_sizes) >= 2:
+    #     print("The file contains headings of at least two different sizes:", ", ".join(heading_sizes))
+    #     print("Heading sizes found:", ", ".join(heading_sizes))
+    if len(heading_sizes) == 1:
+        print("-50: The HTML file contains only headings of one size (instead of two different sizes): ", ", ".join(heading_sizes))
+        total_score -= 50
+        
     else:
         print("-100: The file does not contain at least two headings of different sizes.")
         total_score -= 100
@@ -53,9 +57,10 @@ def check_tooltip():
     global total_score
     h1_tag = soup.find("h1")
     if h1_tag:
+        nested_tags_with_title = h1_tag.find_all(lambda tag: tag.has_attr("title"))
         tooltip = h1_tag.get("title")
         h1_class = h1_tag.get("class")
-        if tooltip:
+        if tooltip or len(nested_tags_with_title) > 0:
             return
         if h1_class and any("tooltip" in cls.lower() for cls in h1_class):
             return
@@ -76,6 +81,7 @@ def check_tooltip():
             return
     else:
         print("The file does not contain any <h1> tags.")
+        total_score -= 50
 
 
 # 4. Colored background (other than white) (100 points)
