@@ -6,8 +6,13 @@ import base64
 
 # check for correct html file type
 def check_type_html(file_name):
+    global total_score
     if not file_name.lower().endswith(".html"):
         print("Error: The file is not an HTML file.")
+        print("Total Score: 0")
+        print("Please email your assignment with the correct .html file ending to your TA so it can be graded.")
+        total_score -= 1000
+        return
 
     with open(file_name, "r") as f:
         html_content = f.read()
@@ -18,15 +23,18 @@ def check_type_html(file_name):
     
 # 1. Title (this is different than a heading) (50 points)
 def check_title():
+    global total_score
     title_tag = soup.find("title")
-    if title_tag:
-        print("The file has a title:", title_tag.text)
-    else:
-        print("The file does not have a title.")
+    # if title_tag:
+        # print("The file has a title:", title_tag.text)
+    if title_tag is None:
+        print("-50: The file does not have a title.")
+        total_score -= 50
         
 
 # 2. Headings of two different sizes (ex. h1, h2, h3, etc.) (50 points each)
 def check_headings():
+    global total_score
     headings = soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])
     heading_sizes = set()
     for heading in headings:
@@ -36,10 +44,12 @@ def check_headings():
         print("The file contains headings of at least two different sizes:", ", ".join(heading_sizes))
         print("Heading sizes found:", ", ".join(heading_sizes))
     else:
-        print("The file does not contain at least two headings of different sizes.")
+        print("-100: The file does not contain at least two headings of different sizes.")
+        total_score -= 100
 
 # 3. Add a tooltip (or "hover box") to your first use of the h1 tag. (50 points)
 def check_tooltip():
+    global total_score
     h1_tag = soup.find("h1")
     if h1_tag:
         tooltip = h1_tag.get("title")
@@ -60,7 +70,8 @@ def check_tooltip():
                 if "h1:hover" in css_style or ".tooltip" in css_style:
                     # print("The file contains CSS for h1:hover or .tooltip class.")
                     return
-            print("The first <h1> tag in the file does not have a tooltip or hover box.")
+            print("-50: The first <h1> tag in the file does not have a tooltip or hover box.")
+            total_score -= 50
             return
     else:
         print("The file does not contain any <h1> tags.")
@@ -68,6 +79,7 @@ def check_tooltip():
 
 # 4. Colored background (other than white) (100 points)
 def check_colored_background():
+    global total_score
     # colored background set in the CSS style tag
     style_tags = soup.find_all("style")
     for style_tag in style_tags:
@@ -85,11 +97,12 @@ def check_colored_background():
             if bgcolor:
                 print("The file has a colored background.")
                 return
-        print("The file does not have a colored background.")
-
+        print("-100: The file does not have a colored background.")
+        total_score -= 100
 
 # 5. "Mailto" link to your email address (50 points)
 def check_mailto():
+    global total_score
     a_tags = soup.find_all("a", href=True)
     for a_tag in a_tags:
         href = a_tag["href"]
@@ -102,11 +115,13 @@ def check_mailto():
             # else:
                 # print("No valid email address found.")
         # else:
-    print(f"The file does NOT have a \"mailto\" link to your email address.")
+    print(f"-50: The file does NOT have a \"mailto\" link to your email address.")
+    total_score -= 50
 
 
 # 6. Hyperlink to another website (must use a URL, not a file path) (50 points)
 def check_hyperlink():
+    global total_score
     anchor_tags = soup.find_all("a", href=True)
 
     for anchor_tag in anchor_tags:
@@ -116,26 +131,31 @@ def check_hyperlink():
             # print("The file contains a hyperlink to another website.")
             # print("URL:", url)
             return
-    print("The file does not contain a hyperlink to another website.")
+    print("-50: The file does not contain a hyperlink to another website.")
+    total_score -= 50
 
 
 # 7. Bold text and italic text (50 points each)
 def check_bold_and_italic():
+    global total_score
     bold_tags = soup.find_all(['b', 'strong']) # Find all bold and strong tags
     italic_tags = soup.find_all(['i', 'em']) # Find all italic and emphasis tags
     # if bold_tags:
         # print("The file contains bold text.")
     if not bold_tags:
-        print("The file does not contain bold text.")
+        print("-50: The file does not contain bold text.")
+        total_score -= 50
 
     # if italic_tags:
         # print("The file contains italic text.")
     if not italic_tags:
-        print("The file does not contain italic text.")
+        print("-50: The file does not contain italic text.")
+        total_score -= 50
 
 
 # 8. Centered text or photo (50 points)
 def check_centered_text_or_photo():
+    global total_score
     style_tag = soup.find("style")
     if style_tag:
         style_text = style_tag.get_text()
@@ -163,31 +183,38 @@ def check_centered_text_or_photo():
     if not centered_elements_html and not centered_text_elements_css and not centered_img_elements_css:
         # print(f"The file "{file_name}" contains centered content.")
     # else:
-        print(f"The file does not contain centered content.")
+        print(f"-50: The file does not contain centered content.")
+        total_score -= 50
 
 
 # 9. Horizontal line (aka "horizontal rule") (50 points)
 def check_horizontal_line():
+    global total_score
     horizontal_lines = soup.find_all("hr")
     if not horizontal_lines:
         # print("The file contains horizontal lines (horizontal rules).")
     # else:
-        print("The file does not contain horizontal lines (horizontal rules).")
+        print("-50: The file does not contain horizontal lines (horizontal rules).")
+        total_score -= 50
 
 
 # 10. Ordered list (numbered list) and unordered list (bulleted list) (50 points each)
 def check_ordered_and_unordered_list():
+    global total_score
     ordered_lists = soup.find_all("ol")
     unordered_lists = soup.find_all("ul")
     if not ordered_lists:
-        print("The file does not contain ordered lists (numbered lists).")
+        print("-50: The file does not contain ordered lists (numbered lists).")
+        total_score -= 50
 
     if not unordered_lists:
-        print("The file does not contain unordered lists (bulleted lists).")
+        print("-50: The file does not contain unordered lists (bulleted lists).")
+        total_score -= 50
 
 
 # 11. A working picture, hosted online. You can link to an existing photo or upload your own image to photo-sharing sites like Google Photos or imgur.com. Make sure the photo is shared properly, and test your page on someone else's device to be certain. (100 points)
 def check_picture():
+    global total_score
     picture_tags = soup.find_all("img")
 
     for picture_tag in picture_tags:
@@ -195,7 +222,8 @@ def check_picture():
         print("src:", src)
 
         if src is None:
-            print("The file does not contain a working picture hosted online.")
+            print("-100: The file does not contain a working picture hosted online.")
+            total_score -= 100
             return
         
         else:
@@ -210,10 +238,12 @@ def check_picture():
                     print("Image URL:", src)
                     return
             except Exception as e:
-                print("The file does not contain a working picture hosted online.")
+                print("-100: The file does not contain a working picture hosted online.")
+                total_score -= 100
                 return
     # except:
-    print("The file does not contain a working picture hosted online.")
+    print("-100: The file does not contain a working picture hosted online.")
+    total_score -= 100
             
     # for picture_tag in picture_tags:
     #     src = picture_tag.get("src")
@@ -227,6 +257,7 @@ def check_picture():
 
 # 12. Set the width and height of your photo. Recommend 450x600 for portrait layout, or 600x450 for landscape. If your source photo isn't 4:3 aspect ratio, this may look odd. (100 points)
 def check_picture_width_height():
+    global total_score
     picture_tags = soup.find_all("img")
 
     for picture_tag in picture_tags:
@@ -253,11 +284,13 @@ def check_picture_width_height():
             # print("The file contains contains width and height styles for image class")
             return
     
-    print("The file does not contain an image with both width and height attributes set.")
+    print("-100: The file does not contain an image with both width and height attributes set.")
+    total_score -= 100
 
 
 # 13. Add a comment at the very bottom of your source code, listing the tools you used to create this: operating system, text editor, and the web browser you used to test it. (100 points)
 def check_comment():
+    global total_score
     comments = soup.find_all(string=lambda text: isinstance(text, Comment))
     for comment in comments:
         words = comment.strip().split()
@@ -270,23 +303,28 @@ def check_comment():
     if len(matches) > 0:
         return
 
-    print("The file does NOT contain at least one comment that is at least 3 words long.")
+    print("-100: The file does NOT contain at least one comment that is at least 3 words long.")
+    total_score -= 100
 
 
 # Extra Credit: Add a video to your page, using YouTube, Vimeo, or other video hosting service. Find a video, look for the "Share" option, and select "Embed" or "Link" to find a working video link.
 def check_extra_credit_video():
+    global total_score
     iframe_tags = soup.find_all("iframe")
 
     for iframe_tag in iframe_tags:
         src = iframe_tag.get("src")
         if src and ("youtube.com/embed" in src or "player.vimeo.com/video" in src):
-            print("+100 extra credit: The HTML file contains a video from a video hosting service.")
+            print("+100 extra credit: The file contains a video from a video hosting service.")
             print("Video URL:", src)
+            total_score += 100
             return
 
 
 if __name__ == "__main__":
     file_path = input("Enter the path to the HTML file: ")
+    
+    total_score = 1000
 
     soup = check_type_html(file_path)
     if soup:
