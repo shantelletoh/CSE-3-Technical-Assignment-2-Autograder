@@ -1,5 +1,5 @@
 import os
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 import re
 import requests
 import base64
@@ -258,12 +258,31 @@ def check_picture_width_height():
 
 # 13. Add a comment at the very bottom of your source code, listing the tools you used to create this: operating system, text editor, and the web browser you used to test it. (100 points)
 def check_comment():
-    pass
+    comments = soup.find_all(string=lambda text: isinstance(text, Comment))
+    for comment in comments:
+        words = comment.strip().split()
+        if len(words) >= 3:
+            # print("The file contains at least one comment that is at least 3 words long.")
+            return
+
+    comment_pattern = r"<!--\s*(?:\w+\W+){2,}"
+    matches = soup.find_all(string=lambda text: re.search(comment_pattern, str(text)))
+    if len(matches) > 0:
+        return
+
+    print("The file does NOT contain at least one comment that is at least 3 words long.")
 
 
 # Extra Credit: Add a video to your page, using YouTube, Vimeo, or other video hosting service. Find a video, look for the "Share" option, and select "Embed" or "Link" to find a working video link.
 def check_extra_credit_video():
-    pass
+    iframe_tags = soup.find_all("iframe")
+
+    for iframe_tag in iframe_tags:
+        src = iframe_tag.get("src")
+        if src and ("youtube.com/embed" in src or "player.vimeo.com/video" in src):
+            print("+100 extra credit: The HTML file contains a video from a video hosting service.")
+            print("Video URL:", src)
+            return
 
 
 if __name__ == "__main__":
