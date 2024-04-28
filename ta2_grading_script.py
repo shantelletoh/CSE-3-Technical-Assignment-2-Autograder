@@ -48,7 +48,7 @@ def check_headings():
         print("-50: The HTML file contains only headings of one size (instead of two different sizes): ", ", ".join(heading_sizes))
         total_score -= 50
         
-    else:
+    elif len(heading_sizes) < 1:
         print("-100: The file does not contain at least two headings of different sizes.")
         total_score -= 100
 
@@ -103,6 +103,8 @@ def check_colored_background():
             bgcolor = body_tag.get("bgcolor")
             if bgcolor:
                 print("The file has a colored background.")
+                return
+            elif body_tag.has_attr("style") and "background-color" in body_tag["style"]:
                 return
         print("-100: The file does not have a colored background.")
         total_score -= 100
