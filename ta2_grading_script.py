@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup, Comment
 import re
 import requests
 import base64
+import csv
 
 # check for correct html file type
 def check_type_html(file_name):
@@ -322,24 +323,39 @@ def check_extra_credit_video():
 
 
 if __name__ == "__main__":
-    file_path = input("Enter the path to the HTML file: ")
+    # file_path = input("Enter the path to the HTML file: ")
     
-    total_score = 1000
+    output_file = "student_scores.csv"
+    with open(output_file, "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
 
-    soup = check_type_html(file_path)
-    if soup:
-        check_title() # 1.
-        check_headings() # 2.
-        check_tooltip() # 3.
-        check_colored_background() # 4.
-        check_mailto() # 5.
-        check_hyperlink() # 6.
-        check_bold_and_italic() # 7.
-        check_centered_text_or_photo() # 8.
-        check_horizontal_line() # 9.
-        check_ordered_and_unordered_list() # 10.
-        check_picture() # 11.
-        check_picture_width_height() # 12.
-        check_comment() # 13.
-        check_extra_credit_video()
-    
+        folder_path = "./TA2_Submissions/"
+        submissions_folder = sorted(os.listdir(folder_path)) # Get a list of all files in the folder in alphabetical order
+        for file_name in submissions_folder:
+            total_score = 1000
+            
+            file_path = os.path.join(folder_path, file_name)
+            parts = file_name.split("_")
+            prefix = parts[0] # prefix (before 1st underscore) is lastnamefirstname of student
+            # print("parts:", parts)
+
+            soup = check_type_html(file_path)
+            if soup:
+                check_title() # 1.
+                check_headings() # 2.
+                check_tooltip() # 3.
+                check_colored_background() # 4.
+                check_mailto() # 5.
+                check_hyperlink() # 6.
+                check_bold_and_italic() # 7.
+                check_centered_text_or_photo() # 8.
+                check_horizontal_line() # 9.
+                check_ordered_and_unordered_list() # 10.
+                check_picture() # 11.
+                check_picture_width_height() # 12.
+                check_comment() # 13.
+                check_extra_credit_video()
+            
+            print("\n\n\n")
+
+            writer.writerow([prefix, total_score])
