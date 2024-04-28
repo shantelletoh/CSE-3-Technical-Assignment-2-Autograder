@@ -40,7 +40,7 @@ def check_headings():
         heading_sizes.add(heading.name)
 
     if len(heading_sizes) == 1:
-        print("-50: The HTML file contains only headings of one size (instead of two different sizes): ", ", ".join(heading_sizes))
+        print("-50: The file contains only headings of one size (instead of two different sizes): ", ", ".join(heading_sizes))
         total_score -= 50
         
     elif len(heading_sizes) < 1:
@@ -204,7 +204,7 @@ def check_picture():
 
     for picture_tag in picture_tags:
         src = picture_tag.get("src")
-        print("src:", src)
+        # print("src:", src)
 
         if src is None:
             print("-100: The file does not contain a working picture hosted online.")
@@ -223,12 +223,12 @@ def check_picture():
         else:
             try:
                 response = requests.head(src)
-                print("src:", src)
-                print("response:", response)
-                print("response.status_code:", response.status_code)
+                # print("src:", src)
+                # print("response:", response)
+                # print("response.status_code:", response.status_code)
                 if response.status_code == 200:
-                    print("The file contains a working picture hosted online:")
-                    print("Image URL:", src)
+                    # print("The file contains a working picture hosted online:")
+                    # print("Image URL:", src)
                     return
             except Exception as e:
                 print("-100: The file does not contain a working picture hosted online.")
@@ -296,7 +296,7 @@ def check_extra_credit_video():
         src = iframe_tag.get("src")
         if src and ("youtube.com/embed" in src or "player.vimeo.com/video" in src):
             print("+100 extra credit: The file contains a video from a video hosting service.")
-            print("Video URL:", src)
+            # print("Video URL:", src)
             total_score += 100
             return
 
@@ -315,6 +315,20 @@ if __name__ == "__main__":
             file_path = os.path.join(folder_path, file_name)
             parts = file_name.split("_")
             prefix = parts[0] # prefix (before 1st underscore) is lastnamefirstname of student
+            
+            late = False
+            # print("parts:", parts)
+            if parts[1] == "LATE":
+                print("-100: late submission")
+                print("Note: Manually check submission time. if submitted within 1 hour after due date, then remove the late penalty")
+                total_score -= 100
+            
+            message = ""
+            if total_score <= 1000:
+                message = "Total score is <= 1000. Good idea to manually look at submission to ensure grading script made no errors."
+            elif total_score == 1100:
+                message = "Good job! :)"
+                
 
             soup = check_type_html(file_path)
             if soup:
