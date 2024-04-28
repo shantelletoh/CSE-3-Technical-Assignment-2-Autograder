@@ -15,7 +15,7 @@ def check_type_html(file_name):
         total_score -= 1000
         return
 
-    with open(file_name, "r") as f:
+    with open(file_name, "r", encoding="utf-8") as f:
         html_content = f.read()
         print(f"File: {file_name}\n")
         soup = BeautifulSoup(html_content, "html.parser")
@@ -225,6 +225,21 @@ def check_picture():
         if src is None:
             print("-100: The file does not contain a working picture hosted online.")
             total_score -= 100
+            return
+        
+        # allow encoded images
+        if src.startswith("data:image/"):
+            encoded_data = re.search(r"base64,(.*)", src).group(1)
+            # print("The file contains a working picture hosted online:")
+            # print("Image URL:", src)
+            # try:
+            base64.b64decode(encoded_data)
+            return
+            # except:
+            #     print("-100: The file does not contain a working picture hosted online.")
+            #     total_score -= 100
+            
+        elif src.startswith("https://i.imgur.com/"): # special case so it won't give too many requests error
             return
         
         else:
