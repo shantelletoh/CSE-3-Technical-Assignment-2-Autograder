@@ -433,13 +433,17 @@ def multiple_files_note_to_grader(output_file):
 if __name__ == "__main__":
     
     output_file = "student_scores.csv"
+    
     with open(output_file, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
+        
+        # write column headers to the csv
         column_headers = ["LastnameFirstname", "Total Score", "Student Feedback", "Note to TA/Grader"]
         writer.writerow(column_headers)
 
         folder_path = "./TA2_Submissions/"
         submissions_folder = sorted(os.listdir(folder_path)) # Get a list of all files in the folder in alphabetical order
+        
         for file_name in submissions_folder:
             total_score = 1000 # max possible score
             extra_credit_done = False
@@ -461,6 +465,7 @@ if __name__ == "__main__":
                 total_score -= 100
             
 
+            # check which requirements are met and which are not met
             soup = check_type_html(file_path)
             if soup:
                 check_title() # 1.
