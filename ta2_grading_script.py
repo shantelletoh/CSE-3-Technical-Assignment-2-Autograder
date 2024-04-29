@@ -361,6 +361,7 @@ def check_extra_credit_video():
     iframe_tags = soup.find_all("iframe")
     embed_tags = soup.find_all("embed")
 
+    # check for video in iframe tag
     for iframe_tag in iframe_tags:
         src = iframe_tag.get("src")
         if src and ("youtube.com/embed" in src or "player.vimeo.com/video" in src):
@@ -376,7 +377,8 @@ def check_extra_credit_video():
             message += "\nAutograder cannot tell if video is correctly embedded. Please manually view the HTML file verify."
             unsure_about_extra_credit = True
             return
-    
+
+    # check for video in embed tag
     for embed_tag in embed_tags:
         src = embed_tag.get("src")
         if src and ("youtube.com/embed" in src or "player.vimeo.com/video" in src):
@@ -393,55 +395,50 @@ def check_extra_credit_video():
             unsure_about_extra_credit = True
             return
 
-# def count_adjacent_repeating_values(file_path):
-#     all_counts = []
-#     all_prev_values = []
-#     last_repeated_row_indices = []
-#     msgs = []
-#     # open the CSV file
-#     with open(file_path, "r", newline="") as csvfile:
-#         reader = csv.reader(csvfile)
-#         next(reader)  # skip the header row
-        
-#         count = 1
-#         prev_value = None
-#         for index, row in enumerate(reader):
-#             value = row[0] # column A
-#             if value == prev_value:
-#                 count += 1
-#             elif count > 1:
-#                 print(f"Found {count} repeating cell(s) with value \"{prev_value}\"")
-#                 all_counts.append(count)
-#                 all_prev_values.append(prev_value)
-#                 last_repeated_row_indices.append(index)
-#                 msgs.append(f"\nFound {count} repeating cell(s) with value \"{prev_value}\"")
-#                 count = 1
-#             prev_value = value
-        
-#         print("all_counts:", all_counts)
-#         print("all_prev_values:", all_prev_values)
-#         # # check for repeating cells at the end of the column
-#         # if count > 1:
-#         #     print(f"Found {count} repeating cell(s) with value \"{prev_value}\"")
+# append a message to the appropriate cell in the csv for students who submitted multiple files
+def multiple_files_message(output_file):
+    all_counts = []
+    all_prev_values = []
+    last_repeated_row_indices = []
+    msgs = []
     
-#     rows = 0
-#     with open(file_path, "r", newline="") as csvfile:
-#         reader = csv.reader(csvfile)
-#         rows = list(reader)
-    
-#     with open(file_path, "w", newline="") as csvfile:
-#         reader = csv.writer(csvfile)
-#         for i in range(len(all_prev_values)):
-#             rows[last_repeated_row_indices[i] - all_counts[i] + 1][3] += msgs[i]
-            
+    with open(output_file, "r", newline="") as csvfile:
+        reader = csv.reader(csvfile)
         
+        count = 1 # keep track of number of files submitted
+        prev_value = None
+        for index, row in enumerate(reader):
+            value = row[0] # column A
+            if value == prev_value:
+                count += 1
+            elif count > 1:
+                # print(f"{prev_value} submitted {count} files. Take the max score of the files submitted, and manually check submission if needed.")
+                all_counts.append(count)
+                all_prev_values.append(prev_value)
+                last_repeated_row_indices.append(index)
+                msgs.append(f"{prev_value} submitted {count} files. Take the max score of the files submitted, and manually check submission if needed.")
+                count = 1
+            prev_value = value
+        
+    
+    with open(output_file, "r", newline="") as csvfile:
+        reader = list(csv.reader(csvfile))
+        
+    for index, row in enumerate(last_repeated_row_indices):
+        row_to_write_to = row - all_counts[index] # get the row of the student's 1st submitted file
+        reader[row_to_write_to][3] += msgs[index] # add the message to correct index in the list
+    
+    with open(output_file, "a", newline="") as csvfile: # append to csv the multiple submitted files msg
+        writer = csv.writer(csvfile)
+        writer.writerows(reader)
+
 
 if __name__ == "__main__":
     
     output_file = "student_scores.csv"
     with open(output_file, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
-        column_headers = ["lastnamefirstname", "Total Score", "Student Feedback", "Message to TA/Grader"]
+        column_headers = ["LastnameFirstname", "Total Score", "Student Feedback", "Message to TA/Grader"]
         writer.writerow(column_headers)
 
         folder_path = "./TA2_Submissions/"
@@ -498,45 +495,4 @@ if __name__ == "__main__":
             writer.writerow([prefix, total_score, student_feedback, message])
     
     
-    # count_adjacent_repeating_values(output_file)
-    all_counts = []
-    all_prev_values = []
-    last_repeated_row_indices = []
-    msgs = []
-    
-        
-    # open the CSV file
-    with open(output_file, "r", newline="") as csvfile2:
-        reader = csv.reader(csvfile2)
-        
-        count = 1
-        prev_value = None
-        for index, row in enumerate(reader):
-            value = row[0] # column A
-            if value == prev_value:
-                count += 1
-            elif count > 1:
-                print(f"{prev_value} submitted {count} files. Take the max score of the files submitted, and manually check submission if needed.")
-                all_counts.append(count)
-                all_prev_values.append(prev_value)
-                last_repeated_row_indices.append(index)
-                msgs.append(f"{prev_value} submitted {count} files. Take the max score of the files submitted, and manually check submission if needed.")
-                count = 1
-            prev_value = value
-        
-        # print("all_counts:", all_counts)
-        # print("all_prev_values:", all_prev_values)
-        # print("last_repeated_row_indices:", last_repeated_row_indices)
-        # print("msgs:", msgs)
-    
-    
-    with open(output_file, "r", newline="") as csvfile3:
-        reader = list(csv.reader(csvfile3))
-        
-    for index, row in enumerate(last_repeated_row_indices):
-        row_to_write_to = row - all_counts[index]
-        reader[row_to_write_to][3] += msgs[index]
-    
-    with open(output_file, "a", newline="") as csvfile4:
-        writer = csv.writer(csvfile4)
-        writer.writerows(reader)
+    multiple_files_message(output_file)
