@@ -8,13 +8,13 @@ import csv
 # check for correct html file type
 def check_type_html(file_name):
     global student_feedback
-    global message
+    global note_to_grader
     global total_score
     
     if not file_name.lower().endswith(".html"):
         student_feedback += "Error: The file is not an HTML file.\n"
         student_feedback += "Please email your correct assignment file to your TA so it can be graded."
-        message += "\nError: The file is not an HTML file."
+        note_to_grader += "\nError: The file is not an HTML file."
         total_score -= 1000
         return
 
@@ -245,7 +245,7 @@ def check_ordered_and_unordered_list():
 # 11. A working picture, hosted online. You can link to an existing photo or upload your own image to photo-sharing sites like Google Photos or imgur.com. Make sure the photo is shared properly, and test your page on someone else's device to be certain. (100 points)
 def check_picture():
     global student_feedback
-    global message
+    global note_to_grader
     global total_score
     
     picture_tags = soup.find_all("img")
@@ -286,7 +286,7 @@ def check_picture():
                 #     msg = True
                 elif response.status_code >= 300:
                     if counter == len(picture_tags): # last picture
-                        message += "\nCheck manually if there is an image. If image not visible, please manually deduct 100 points."
+                        note_to_grader += "\nCheck manually if there is an image. If image not visible, please manually deduct 100 points."
                         return
         except Exception as e:
             if counter == len(picture_tags): # last picture
@@ -353,10 +353,9 @@ def check_comment():
 # Extra Credit: Add a video to your page, using YouTube, Vimeo, or other video hosting service. Find a video, look for the "Share" option, and select "Embed" or "Link" to find a working video link.
 def check_extra_credit_video():
     global student_feedback
-    global message
+    global note_to_grader
     global total_score
     global extra_credit_done
-    global unsure_about_extra_credit
     
     iframe_tags = soup.find_all("iframe")
     embed_tags = soup.find_all("embed")
@@ -374,8 +373,7 @@ def check_extra_credit_video():
             student_feedback += "No extra credit: video is not correctly embedded."
             return
         else:
-            message += "\nAutograder cannot tell if video is correctly embedded. Please manually view the HTML file verify."
-            unsure_about_extra_credit = True
+            note_to_grader += "\nAutograder cannot tell if video is correctly embedded. Please manually view the HTML file verify."
             return
 
     # check for video in embed tag
@@ -391,12 +389,11 @@ def check_extra_credit_video():
             student_feedback += "No extra credit: video is not correctly embedded."
             return
         else:
-            message += "\nAutograder cannot tell if video is correctly embedded. Please manually view the HTML file verify."
-            unsure_about_extra_credit = True
+            note_to_grader += "\nAutograder cannot tell if video is correctly embedded. Please manually view the HTML file verify."
             return
 
-# append a message to the appropriate cell in the csv for students who submitted multiple files
-def multiple_files_message(output_file):
+# append a note_to_grader to the appropriate cell in the csv for students who submitted multiple files
+def multiple_files_note_to_grader(output_file):
     all_counts = []
     all_prev_values = []
     last_repeated_row_indices = []
@@ -426,7 +423,7 @@ def multiple_files_message(output_file):
         
     for index, row in enumerate(last_repeated_row_indices):
         row_to_write_to = row - all_counts[index] # get the row of the student's 1st submitted file
-        reader[row_to_write_to][3] += msgs[index] # add the message to correct index in the list
+        reader[row_to_write_to][3] += msgs[index] # add the note_to_grader to correct index in the list
     
     with open(output_file, "a", newline="") as csvfile: # append to csv the multiple submitted files msg
         writer = csv.writer(csvfile)
@@ -438,30 +435,29 @@ if __name__ == "__main__":
     output_file = "student_scores.csv"
     with open(output_file, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
-        column_headers = ["LastnameFirstname", "Total Score", "Student Feedback", "Message to TA/Grader"]
+        column_headers = ["LastnameFirstname", "Total Score", "Student Feedback", "Note to TA/Grader"]
         writer.writerow(column_headers)
 
         folder_path = "./TA2_Submissions/"
         submissions_folder = sorted(os.listdir(folder_path)) # Get a list of all files in the folder in alphabetical order
         for file_name in submissions_folder:
-            total_score = 1000
+            total_score = 1000 # max possible score
             extra_credit_done = False
-            unsure_about_extra_credit = False
-            message = ""
-            student_feedback = ""
+            note_to_grader = "" # anything the grader should be aware of or needs to check
+            student_feedback = "" # so students know why they got the score they got
             
             file_path = os.path.join(folder_path, file_name)
             
             print("file_path:", file_path)
-            message += "file_path: " + file_path
+            note_to_grader += "file_path: " + file_path
             parts = file_name.split("_")
             prefix = parts[0] # prefix (before 1st underscore) is lastnamefirstname of student
             
+            # dock points for a late submission
             late = False
-            # print("parts:", parts)
             if parts[1] == "LATE":
                 student_feedback += "-100: late submission\n"
-                message += "\nLate submission. Please check the submission time. if submitted within 1 hour after due date, then remove the late penalty."
+                note_to_grader += "\nLate submission. Please check the submission. If submitted within 1 hour after due date or penalty is excused, then remove the late penalty."
                 total_score -= 100
             
 
@@ -483,8 +479,9 @@ if __name__ == "__main__":
                 check_extra_credit_video()
             
             
+            # notes and feedback after done grading
             if total_score <= 700:
-                message += "\nTotal score is <= 700. Good idea to manually check the submission to ensure the grading script made no errors."
+                note_to_grader += "\nTotal score is <= 700. Good idea to manually check the submission to ensure the grading script made no errors."
             elif total_score == 1100:
                 student_feedback += "\nGood job! :)"
             elif total_score == 1000 and extra_credit_done is False:
@@ -492,7 +489,9 @@ if __name__ == "__main__":
 
             
             # write to csv file
-            writer.writerow([prefix, total_score, student_feedback, message])
+            writer.writerow([prefix, total_score, student_feedback, note_to_grader])
     
     
-    multiple_files_message(output_file)
+    multiple_files_note_to_grader(output_file)
+    
+    print("Grading script all done! Check the student_scores.csv file for the scores, student feedback, and notes to the grader.")
