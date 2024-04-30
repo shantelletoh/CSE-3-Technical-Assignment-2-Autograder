@@ -4,6 +4,8 @@ import re
 import requests
 import base64
 import csv
+import pandas as pd
+from openpyxl import load_workbook
 
 # check for correct html file type
 def check_type_html(file_name):
@@ -413,7 +415,7 @@ def multiple_files_note_to_grader(output_file):
                 all_counts.append(count)
                 all_prev_values.append(prev_value)
                 last_repeated_row_indices.append(index)
-                msgs.append(f"{prev_value} submitted {count} files. Take the max score of the files submitted, and manually check submission if needed.")
+                msgs.append(f"\n{prev_value} submitted {count} files. Take the max score of the files submitted, and manually check submission if needed.")
                 count = 1
             prev_value = value
         
@@ -425,7 +427,7 @@ def multiple_files_note_to_grader(output_file):
         row_to_write_to = row - all_counts[index] # get the row of the student's 1st submitted file
         reader[row_to_write_to][3] += msgs[index] # add the note_to_grader to correct index in the list
     
-    with open(output_file, "a", newline="") as csvfile: # append to csv the multiple submitted files msg
+    with open(output_file, "w", newline="") as csvfile: # rewrite csv file with the multiple submitted files msg
         writer = csv.writer(csvfile)
         writer.writerows(reader)
 
@@ -499,4 +501,36 @@ if __name__ == "__main__":
     
     multiple_files_note_to_grader(output_file)
     
+    
+    
+    df = pd.read_csv(output_file)
+    
+    # write dataframe to excel file
+    df.to_excel("new_output_file.xlsx", index=False)
+    
+    
+    # adjust excel column widths so the data fits
+    wb = load_workbook("new_output_file.xlsx")
+    
+    for sheet in wb:
+        for col in sheet.columns:
+            column = col[0].column_letter # get column letter
+            if column in ("A", "B"):
+                max_length = 0
+                for cell in col:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                sheet.column_dimensions[column].width = max_length
+                
+    column_widths = {"C": 75, "D": 75} # manually adjust widths
+
+    for sheet_name in wb.sheetnames:
+        sheet = wb[sheet_name]
+        
+        # set column widths based on the provided dictionary
+        for col_letter, width in column_widths.items():
+            sheet.column_dimensions[col_letter].width = width
+    
+    wb.save("new.xlsx")
+
     print("Grading script all done! Check the student_scores.csv file for the scores, student feedback, and notes to the grader.")
