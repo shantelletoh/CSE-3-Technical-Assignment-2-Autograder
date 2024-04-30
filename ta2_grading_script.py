@@ -6,6 +6,8 @@ import base64
 import csv
 import pandas as pd
 from openpyxl import load_workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from copy import copy
 
 # check for correct html file type
 def check_type_html(file_name):
@@ -431,10 +433,82 @@ def multiple_files_note_to_grader(output_file):
         writer = csv.writer(csvfile)
         writer.writerows(reader)
 
+# convert the csv to a excel file, and format the excel file
+def write_csv_to_excel(output_file):
+    df = pd.read_csv(output_file)
+    
+    # write dataframe to excel file
+    df.to_excel("cse3_ta2_student_scores.xlsx", index=False)
+    
+    
+    # adjust excel column widths so the data fits
+    wb = load_workbook("cse3_ta2_student_scores.xlsx")
+    
+    for sheet in wb:
+        for col in sheet.columns:
+            column = col[0].column_letter # get column letter
+            if column in ("A", "B"):
+                max_length = 0
+                for cell in col:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                sheet.column_dimensions[column].width = max_length
+                
+    column_widths = {"C": 70, "D": 80} # manually adjust widths
+
+    for sheet_name in wb.sheetnames:
+        sheet = wb[sheet_name]
+        
+        # set column widths based on the provided dictionary
+        for col_letter, width in column_widths.items():
+            sheet.column_dimensions[col_letter].width = width
+    
+    
+    ws = wb.active
+    
+    # define the alternating color fill
+    color = "E7F9EF"
+    header_color = "63D297"
+    header_fill = PatternFill(start_color=header_color, end_color=header_color, fill_type="solid")
+    fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+    
+    # apply alternating color to rows
+    for i, row in enumerate(ws.iter_rows(), start=1):
+        for cell in row:
+            if i == 1: # header row fill
+                cell.fill = header_fill
+            elif i % 2 == 1 and i != 1: # alternate fill the remaining rows
+                cell.fill = fill
+                cell.border = None # reapply the orig border setting
+    
+    # remove borders on header row
+    header_row = ws[1]
+    for cell in header_row:
+        cell.border = None
+    
+    # left align all cells in the header row
+    for row in ws.iter_rows(min_row=1, max_row=1):
+        for cell in row:
+            cell.alignment = Alignment(horizontal="left")
+    
+    ws.freeze_panes = "B2" # freeze first row and first column
+    
+    # bold the first column (names)
+    for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=1):
+        for cell in row:
+            cell.font = Font(bold=True)
+    
+    # set wrap text for columns C and D
+    for col in ["C", "D"]:
+        for cell in ws[col]:
+            cell.alignment = Alignment(wrap_text=True)
+            
+    wb.save("cse3_ta2_student_scores.xlsx")
+
 
 if __name__ == "__main__":
     
-    output_file = "student_scores.csv"
+    output_file = "student_scores_raw.csv"
     
     with open(output_file, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
@@ -501,36 +575,6 @@ if __name__ == "__main__":
     
     multiple_files_note_to_grader(output_file)
     
-    
-    
-    df = pd.read_csv(output_file)
-    
-    # write dataframe to excel file
-    df.to_excel("new_output_file.xlsx", index=False)
-    
-    
-    # adjust excel column widths so the data fits
-    wb = load_workbook("new_output_file.xlsx")
-    
-    for sheet in wb:
-        for col in sheet.columns:
-            column = col[0].column_letter # get column letter
-            if column in ("A", "B"):
-                max_length = 0
-                for cell in col:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(cell.value)
-                sheet.column_dimensions[column].width = max_length
-                
-    column_widths = {"C": 75, "D": 75} # manually adjust widths
+    write_csv_to_excel(output_file)
 
-    for sheet_name in wb.sheetnames:
-        sheet = wb[sheet_name]
-        
-        # set column widths based on the provided dictionary
-        for col_letter, width in column_widths.items():
-            sheet.column_dimensions[col_letter].width = width
-    
-    wb.save("new.xlsx")
-
-    print("Grading script all done! Check the student_scores.csv file for the scores, student feedback, and notes to the grader.")
+    print("Grading script all done! Check the cse3_ta2_student_scores.xlsx file for the scores, student feedback, and notes to the grader.")
